@@ -37,7 +37,7 @@ module.exports = function() {
         if (stderr.match(/^nl80211 not found/)) {
             config.wifi_driver_type = "rtl871xdrv";
         }
-        // console.log("config.wifi_driver_type = " + config.wifi_driver_type);
+        console.log("config.wifi_driver_type = " + config.wifi_driver_type);
     });
 
     // Hack: this just assumes that the outbound interface will be "wlan0"
@@ -47,8 +47,8 @@ module.exports = function() {
         "hw_addr":         /HWaddr\s([^\s]+)/,
         "inet_addr":       /inet addr:([^\s]+)/,
     },  iwconfig_fields = {
-        "ap_addr":         /Access Point:\s([^\s]+)/,
-        "ap_ssid":         /ESSID:\"([^\"]+)\"/,
+        "ap_addr":         /addr\s([^\s]+)/,
+        "ap_ssid":         /ssid\"([^\"]+)\"/,
         "unassociated":    /(unassociated)\s+Nick/,
     },  last_wifi_info = null;
 
@@ -67,10 +67,13 @@ module.exports = function() {
         function run_command_and_set_fields(cmd, fields, callback) {
             exec(cmd, function(error, stdout, stderr) {
                 if (error) return callback(error);
-                for (var key in fields) {
+               	//console.log(fields);
+		for (var key in fields) {
                     re = stdout.match(fields[key]);
-                    if (re && re.length > 1) {
+                    //console.log(fields[key]+ " " +  re) 
+		    if (re && re.length > 1) {
                         output[key] = re[1];
+			//console.log(output[key]);
                     }
                 }
                 callback(null);
@@ -83,7 +86,7 @@ module.exports = function() {
                 run_command_and_set_fields("ifconfig wlan0", ifconfig_fields, next_step);
             },
             function run_iwconfig(next_step) {
-                run_command_and_set_fields("iwconfig wlan0", iwconfig_fields, next_step);
+                run_command_and_set_fields("iw wlan0 info", iwconfig_fields, next_step);
             },
         ], function(error) {
             last_wifi_info = output;
